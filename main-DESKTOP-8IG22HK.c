@@ -140,8 +140,7 @@ void measurement(){
     IS_C(1) = PM.ibe;
 
     PM.omg = PM.x[2];
-    PM.theta_d = PM.x[3];     //转子磁链角度 带反馈
-    //PM.theta_d = CTRL.theta;  //磁链OB
+    PM.theta_d = PM.x[3];     //转子磁链角度
     PM.theta_r = PM.theta_d; //转子位置=定子磁链 磁场定向
 
 }
@@ -149,8 +148,8 @@ void inverter_model(){
     PM.ual = CTRL.ual;
     PM.ube = CTRL.ube;
 
-    PM.ud = AB2M(PM.ual, PM.ube, cos(PM.theta_d), sin(PM.theta_d)); //定子电压，印加DQ轴，无角度偏差
-    PM.uq = AB2T(PM.ual, PM.ube, cos(PM.theta_d), sin(PM.theta_d));
+    PM.ud = AB2M(PM.ual, PM.ube, cos(PM.theta_d), sin(PM.theta_d)); //DQ变换，印加电压
+    PM.uq = AB2T(PM.ual, PM.ube, cos(PM.theta_d), sin(PM.theta_d)); //DQ变换，印加电压
 }
 int main(){
     printf("NUMBER_OF_LINES: %d\n\n", NUMBER_OF_LINES);
@@ -171,7 +170,7 @@ int main(){
 
         /* Command and Load Torque */
         PM.rpm_cmd = 1500;
-        PM.Tload = 10;//CTRL.Tem_cmd;//0.1;
+        PM.Tload = 30;//CTRL.Tem_cmd;//0.1;
 
         /* SPMulated PM */
         if(machine_simulation()){ 
@@ -199,7 +198,7 @@ int main(){
                 CTRL.ube = volt*sin(2*M_PI*freq*CTRL.timebase);
             #else
                 //freq = 50;
-                volt = CTRL.phi_cmd; //指令电压与磁链指令有关，暂时比例160倍，0.5Wb=80伏
+                volt = CTRL.phi_cmd; //励磁电压为磁链的5倍，PM磁石影响
                 //CTRL.vecter_cmd = 6;000
                 CTRL_DTC();
             #endif
@@ -229,7 +228,7 @@ void write_data_to_file(FILE *fw){
     {
         j=0;
         fprintf(fw, "%g,%g,%g,%g,%g,%d,%d\n",
-                PM.x[0], PM.x[1], CTRL.phial, CTRL.phibe,PM.Tem,HysPhicheck,HysTemcheck
+                PM.x[0], PM.x[1],CTRL.phial,CTRL.phibe,PM.Tem,HysPhicheck,HysTemcheck
                 );
     }
     }
@@ -288,25 +287,25 @@ void CTRL_init(){
 void CTRL_DTC()
 {
 //指令
-    CTRL.phi_cmd = 0;
-    CTRL.Tem_cmd = 10; //直接转矩控制，无负载空转，反馈的转矩始终小于指令转矩
+    CTRL.phi_cmd = 0.1;
+    CTRL.Tem_cmd = 30; //直接转矩控制，无负载空转，反馈的转矩始终小于指令转矩
     //CTRL.Tem_cmd = PM.rpm_cmd - PM.rpm; //速度控制正常
 
 //反馈电压电流获取
 
    CTRL.ual_fb = PM.ual; 
    CTRL.ube_fb = PM.ube; 
-   CTRL.ial_fb = PM.x[0];
-   CTRL.ibe_fb = PM.x[1];
+   CTRL.ial_fb = PM.x[0]; //d轴电流，FOC准确的情况
+   CTRL.ibe_fb = PM.x[1]; //q轴电流，FOC准确的情况
 
 
 //定子磁链以及电磁转矩估算
-   CTRL.phial += (PM.ual - CTRL.R*PM.ial)*TS; //磁链估算 电压*时间常数积分
-   CTRL.phibe += (PM.ube - CTRL.R*PM.ibe)*TS; //磁链估算 电压*时间常数积分
+   CTRL.phial += (PM.ual - CTRL.R*PM.ial)*TS; //定子α磁链估算 （电压-电流损耗）*时间常数积分
+   CTRL.phibe += (PM.ube - CTRL.R*PM.ibe)*TS; //定子β磁链估算 （电压-电流损耗）*时间常数积分
 
    CTRL.theta_M += PM.x[4]*TS;  //theta估算 测试用
 
-   CTRL.phi = sqrt(CTRL.phial*CTRL.phial + CTRL.phibe*CTRL.phibe);  //总磁链估算
+   CTRL.phi = sqrt(CTRL.phial*CTRL.phial + CTRL.phibe*CTRL.phibe);  //定子总磁链估算
    CTRL.Tem = PM.npp*(PM.x[1]*PM.KE + (PM.Ld - PM.Lq)*PM.x[0]*PM.x[1]);  //转矩估算
 
    if (atan2(CTRL.phibe,CTRL.phial) >= 0)

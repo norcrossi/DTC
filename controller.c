@@ -2,7 +2,7 @@
 #include "Controller.h"
 
 struct ControllerForExperiment CTRL;
-struct InductionMachineSimulated IM;
+struct InductionMachineSimulated PM;
 
 
 double PI(struct PI_Reg *r, double err){

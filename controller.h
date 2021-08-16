@@ -18,6 +18,14 @@ struct ControllerForExperiment{
 
     double ual;
     double ube;
+    double Ld;
+    double R;
+    double Lq;
+
+    double KE;
+
+    double L0;
+    double L1;
 
     double rs;
     double rreq;
@@ -70,8 +78,8 @@ struct ControllerForExperiment{
 
     double vecter_cmd;
 
-    
-
+    double ial;
+    double ibe;
 
 
 };

@@ -1,5 +1,5 @@
 #include "ACMSim.h"
 
-struct InductionMachine im;
+//struct InductionMachine im;
 
 
