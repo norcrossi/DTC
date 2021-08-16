@@ -13,11 +13,11 @@
 /* How long should I go? */
 #define NUMBER_OF_LINES (200000)
 
-#define IM_TS 1.25e-4
-#define IM_TS_INVERSE 8000
+#define PM_TS 1.25e-4
+#define PM_TS_INVERSE 8000
 #define DOWN_FREQ_EXE 2
 #define DOWN_FREQ_EXE_INVERSE 0.5
-#define TS (IM_TS*DOWN_FREQ_EXE) //2.5e-4 
+#define TS (PM_TS*DOWN_FREQ_EXE) //2.5e-4 
 #define TS_INVERSE (IM_TS_INVERSE*DOWN_FREQ_EXE_INVERSE) // 4000
 
 
@@ -51,33 +51,46 @@
 #define MT2B(M, T, COS, SIN)  ( (M)*SIN + (T)*COS )
 
 
-struct InductionMachineSimulated{
+struct PMSMSimulated{
     double x[13]; ////////////////////////////////
     double rpm;
     double rpm_cmd;
-    double rpm_deriv_cmd;
     double Tload;
     double Tem;
 
-    double Lsigma;
-    double rs;
-    double rreq;
-    double Lmu;
-    double Lmu_inv;
-    double alpha;
+    double Ld;
+    double R;
+    double Lq;
+
+    double KE;
+
+    double L0;
+    double L1;
+
 
     double Js;
     double npp;
     double mu_m;
     double Ts;
 
-    double iqs;
-    double ids;
+    double iq;
+    double id;
 
     double ual;
     double ube;
+
+    double ud;
+    double uq;
+
+    double theta_d;//定子磁力链位置
+    double theta_r;//转子位置
+
+    double ial;
+    double ibe;
+
+    double omg;
 };
-extern struct InductionMachineSimulated IM;
+extern struct PMSMSimulated PM;
 
 
 #include "controller.h"
